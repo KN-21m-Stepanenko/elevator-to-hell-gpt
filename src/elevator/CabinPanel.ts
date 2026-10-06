@@ -138,7 +138,7 @@ export class CabinPanel {
     c.font = 'bold 46px "Courier New", monospace';
     c.fillText(floorText, 50, 68);
     c.font = 'bold 14px "Courier New", monospace';
-    c.fillText("Поверх", 50, 86);
+    c.fillText("ПОВЕРХ", 50, 86);
 
     // Вес
     c.fillStyle = col;

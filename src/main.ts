@@ -44,7 +44,7 @@ const showGameOver = () => {
   player.enableFreeLook();
   weapon.hide();
   monsters.freezeLiving();
-  hud.showResult("GAME OVER", "ВЫ ПОГИБЛИ", restartGame);
+  hud.showResult("ПОРАЗКА", "ВИ ЗАГИНУЛИ", restartGame);
 };
 
 const finishVictory = (message: string) => {
@@ -62,15 +62,15 @@ const finishVictory = (message: string) => {
   const delay = CONFIG.result.delayBeforeMessage * 1000;
   window.setTimeout(() => {
     if (!ending) return;
-    hud.showResult('ПОБЕДА', message, restartGame);
+    hud.showResult('ПЕРЕМОГА', message, restartGame);
   }, delay);
 };
 
 elevator.onArrived = (floor) => monsters.spawnForFloor(floor);
-monsters.onVictory = (floor) => finishVictory(floor === 4 ? "КРЫША ЗАЧИЩЕНА — ПОБЕДА" : `ЭТАЖ ${floor} ЗАЧИЩЕН — ПОБЕДА`);
+monsters.onVictory = (floor) => finishVictory(floor === 4 ? "ДАХ ОЧИЩЕНО — ПЕРЕМОГА" : `ПОВЕРХ ${floor} ОЧИЩЕНО — ПЕРЕМОГА`);
 player.onDamage = (hp) => {
   hud.bloodSplash(64);
-  if (hp > 0 && hp < player.maxHealth * 0.3) hud.toast(`ЗДОРОВЬЕ: ${hp}%`, 700);
+  if (hp > 0 && hp < player.maxHealth * 0.3) hud.toast(`ЗДОРОВ'Я: ${hp}%`, 700);
 };
 
 const env: NpcEnv = { cabin: world.cabin.root, scene, player, weapon, elevator, npcs };
@@ -98,8 +98,8 @@ scene.onBeforeRenderObservable.add(() => {
     // События игры по-прежнему показываются визуально без текстовых toast-сообщений.
     const key = elevator.pickKey();
     if (key === null) hud.setHint(null);
-    else if (key === "stop") hud.setHint("E — аварийная остановка");
-    else hud.setHint("E — этаж");
+    else if (key === "stop") hud.setHint("E — аварійна зупинка");
+    else hud.setHint("E — поверх");
     elevator.update(dt);
     npcs.forEach((n) => n.update(dt));
     weapon.update(dt);

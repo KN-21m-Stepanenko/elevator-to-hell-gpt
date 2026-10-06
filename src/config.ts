@@ -51,7 +51,7 @@ export const CONFIG = {
     shaftDepth: 7.2,
     // Шахта проходит от 0 этажа до дна ниже лавы, чтобы кабина при падении
     // никогда не оказывалась за пределами стен.
-    shaftTopY: 0.2,
+    shaftTopY: -0.12,
     shaftBottomY: -27.0,
     glowSpeed: 3.2,
     sparkCount: 36,

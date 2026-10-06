@@ -31,7 +31,7 @@ export class Hud {
     this.overlay.innerHTML = `
       <h1>${title}</h1>
       <p>${subtitle}</p>
-      <button id="restartButton" type="button">РЕСТАРТ ИГРЫ</button>
+      <button id="restartButton" type="button">ПЕРЕЗАПУСТИТИ ГРУ</button>
     `;
     this.overlay.classList.remove("hidden");
     this.overlay.style.cursor = "default";
