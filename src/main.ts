@@ -58,7 +58,6 @@ const finishVictory = (message: string) => {
   weapon.hide();
   monsters.freezeLiving();
   hud.setEnding();
-  hud.toast(message, CONFIG.result.delayBeforeMessage * 1000);
 
   const delay = CONFIG.result.delayBeforeMessage * 1000;
   window.setTimeout(() => {
@@ -92,7 +91,15 @@ player.onInteract = () => {
 scene.onBeforeRenderObservable.add(() => {
   const dt = Math.min(engine.getDeltaTime() / 1000, 0.05);
 
+  world.lava.update(dt);
+
   if (!ending) {
+    // Подсказки управления лифтом остаются только как помощь при взаимодействии.
+    // События игры по-прежнему показываются визуально без текстовых toast-сообщений.
+    const key = elevator.pickKey();
+    if (key === null) hud.setHint(null);
+    else if (key === "stop") hud.setHint("E — аварийная остановка");
+    else hud.setHint("E — этаж");
     elevator.update(dt);
     npcs.forEach((n) => n.update(dt));
     weapon.update(dt);
@@ -107,10 +114,6 @@ scene.onBeforeRenderObservable.add(() => {
 
   monsters.update(dt);
 
-  if (!ending) {
-    const key = player.locked ? elevator.pickKey() : null;
-    hud.setHint(key === null ? null : key === "stop" ? "E — аварійна зупинка" : `E — поверх ${key}`);
-  }
 });
 
 engine.runRenderLoop(() => scene.render());

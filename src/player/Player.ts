@@ -28,6 +28,10 @@ export class Player {
   private freeLook = false;
   private deathInitialPitch = 0;
   private deathPrepared = false;
+  private cameraShakeRemaining = 0;
+  private cameraShakeAmplitude = 0;
+  private cameraShakeFrequency = 0;
+  private cameraShakeTime = 0;
 
   constructor(private readonly scene: Scene, private canvas: HTMLCanvasElement, feet: Vector3, yaw = 0) {
     const P = CONFIG.player;
@@ -93,6 +97,13 @@ export class Player {
     this.freeLook = true;
   }
 
+  /** Сильная локальная тряска камеры при аварийном падении лифта. */
+  startCameraShake(amplitude: number, duration: number, frequency: number) {
+    this.cameraShakeAmplitude = Math.max(this.cameraShakeAmplitude, amplitude);
+    this.cameraShakeRemaining = Math.max(this.cameraShakeRemaining, duration);
+    this.cameraShakeFrequency = Math.max(this.cameraShakeFrequency, frequency);
+  }
+
   addPitch(d: number) {
     const m = CONFIG.player.maxPitch;
     this.pitch = Math.max(-m, Math.min(m, this.pitch + d));
@@ -118,6 +129,19 @@ export class Player {
     }
   }
 
+  /** Мгновенная смертельная причина без брызг крови (лава/падение кабины). */
+  kill() {
+    if (!this.alive) return;
+    this.health = 0;
+    this.alive = false;
+    this.inputEnabled = false;
+    this.keys.clear();
+    if (!this.deathPrepared) {
+      this.deathPrepared = true;
+      this.prepareDeath();
+    }
+  }
+
   getEyeRay(length: number): Ray {
     const eye = this.body.position.add(new Vector3(0, CONFIG.player.eyeHeight - CONFIG.player.ellipsoid.y, 0));
     const cp = Math.cos(this.pitch);
@@ -137,6 +161,7 @@ export class Player {
     }
 
     const P = CONFIG.player;
+    this.updateCameraShake(dt);
     const down = (c: string) => (this.locked && this.keys.has(c) ? 1 : 0);
     const f = down("KeyW") - down("KeyS");
     const r = down("KeyD") - down("KeyA");
@@ -147,7 +172,29 @@ export class Player {
     if (len > 1) { mx /= len; mz /= len; }
 
     this.body.moveWithCollisions(new Vector3(mx * P.moveSpeed * dt, -P.gravity * dt, mz * P.moveSpeed * dt));
-    this.camera.rotation.set(this.pitch, this.yaw, 0);
+    const roll = this.camera.rotation.z;
+    this.camera.rotation.set(this.pitch, this.yaw, roll);
+  }
+
+  private updateCameraShake(dt: number) {
+    if (this.camera.parent !== this.body || this.cameraShakeRemaining <= 0) {
+      if (this.camera.parent === this.body) {
+        this.camera.position.set(0, CONFIG.player.eyeHeight - CONFIG.player.ellipsoid.y, 0);
+        this.camera.rotation.z = 0;
+      }
+      return;
+    }
+
+    this.cameraShakeRemaining = Math.max(0, this.cameraShakeRemaining - dt);
+    this.cameraShakeTime += dt * this.cameraShakeFrequency;
+    const fade = Math.min(1, this.cameraShakeRemaining / 0.25 + 0.2);
+    const a = this.cameraShakeAmplitude * fade;
+    const x = Math.sin(this.cameraShakeTime * 2.1) * a + Math.sin(this.cameraShakeTime * 5.3) * a * 0.35;
+    const y = Math.cos(this.cameraShakeTime * 2.7) * a * 0.8;
+    const z = Math.sin(this.cameraShakeTime * 3.4) * a * 0.45;
+    const baseY = CONFIG.player.eyeHeight - CONFIG.player.ellipsoid.y;
+    this.camera.position.set(x, baseY + y, z);
+    this.camera.rotation.z = Math.sin(this.cameraShakeTime * 2.6) * a * 0.65;
   }
 
   private prepareDeath() {
@@ -159,6 +206,10 @@ export class Player {
     const cameraWorld = this.body.position.add(
       new Vector3(0, P.eyeHeight - P.ellipsoid.y, 0),
     );
+    this.cameraShakeRemaining = 0;
+    this.cameraShakeAmplitude = 0;
+    this.cameraShakeFrequency = 0;
+    this.camera.position.set(0, 0, 0);
     this.camera.parent = null;
     this.camera.position.copyFrom(cameraWorld);
     this.camera.rotation.set(this.pitch, this.yaw, 0);
@@ -203,7 +254,12 @@ export class Player {
 
   private spawnBlood(hitFrom?: Vector3) {
     const origin = this.body.position.add(new Vector3(0, 1.05, 0));
-    this.bloodBursts.push(new BloodBurst(this.scene, origin, hitFrom));
+    const viewDirection = new Vector3(
+      Math.sin(this.yaw) * Math.cos(this.pitch),
+      -Math.sin(this.pitch),
+      Math.cos(this.yaw) * Math.cos(this.pitch),
+    );
+    this.bloodBursts.push(new BloodBurst(this.scene, origin, hitFrom, viewDirection));
   }
 
   private updateBlood(dt: number) {

@@ -70,7 +70,6 @@ export class MonsterManager {
     this.waveMonsters.set(floor, wave);
 
     const count = wave.length;
-    this.say(floor === 4 ? `КРЫША: ${count} летающих тварей` : `ЭТАЖ ${floor}: ${count} монстр${count === 1 ? "" : "а"}`);
   }
 
   private spawnWalking(floor: number) {

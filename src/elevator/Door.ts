@@ -17,6 +17,12 @@ export class Door {
 
   get meshes() { return this.panels; }
   setOpen(v: boolean) { this.target = v ? 1 : 0; }
+
+  /** Открыть дверь на произвольную долю хода, чтобы частично приоткрыть её. */
+  setOpenAmount(amount: number) {
+    this.target = Math.max(0, Math.min(1, amount));
+  }
+
   setInstant(v: boolean) { this.open = this.target = v ? 1 : 0; this.place(); }
   get isClosed() { return this.open <= 0.001; }
   get isOpen() { return this.open >= 0.999; }

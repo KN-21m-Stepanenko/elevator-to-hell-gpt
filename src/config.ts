@@ -41,4 +41,35 @@ export const CONFIG = {
     delayBeforeMessage: 2,
     restartAfterMessage: 2,
   },
+  lava: {
+    floor: -1,
+    // Этаж -1 находится значительно глубже нулевого, чтобы свет лавы не доставал до холла.
+    cabinTargetY: -25.0,
+    surfaceY: -23.6,
+    deathDelay: 0.65,
+    shaftWidth: 7.2,
+    shaftDepth: 7.2,
+    // Шахта проходит от 0 этажа до дна ниже лавы, чтобы кабина при падении
+    // никогда не оказывалась за пределами стен.
+    shaftTopY: 0.2,
+    shaftBottomY: -27.0,
+    glowSpeed: 3.2,
+    sparkCount: 36,
+    lightRange: 2.8,
+  },
+  emergency: {
+    // После нажатия STOP 5 секунд только накапливается паника и мигает аварийный свет.
+    waitTime: 5.0,
+    // Более медленное и длинное падение — его должно быть видно из кабины.
+    gravity: 10.5,
+    impactDistance: 16.0,
+    // За секунду до падения тросы заметно рвутся и кабина начинает сильно раскачиваться.
+    cableBreakDuration: 1.25,
+    shakeAmplitude: 0.24,
+    shakeFrequency: 31,
+    cameraShakeAmplitude: 0.16,
+    cameraShakeFrequency: 34,
+    doorOpenBeforeFall: 0.35,
+    doorOpenDuringFall: 0.55,
+  },
 };

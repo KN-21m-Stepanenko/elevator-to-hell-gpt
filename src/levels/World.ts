@@ -5,6 +5,7 @@ import { Door } from "../elevator/Door";
 import { createMaterials, Kind } from "../utils/textures";
 import { addBox, addCylinder } from "./builders";
 import { createSky } from "./Sky";
+import { LavaShaft } from "./LavaShaft";
 
 type B = {
   box: (k: Kind, n: string, s: number[], p: number[]) => void;
@@ -143,5 +144,6 @@ export function buildWorld(scene: Scene) {
 
   // Кабина стоит сразу за северной стеной: стенка (0.2) + половина кабины.
   const cabin = createCabin(scene, baseMats, new Vector3(0, 0, hz + T + 0.2 + cabinSize / 2));
-  return { mats: baseMats, cabin, landing, spawn: new Vector3(0, 0, 0), spawnYaw: 0 };
+  const lava = new LavaShaft(scene, cabin.root.position);
+  return { mats: baseMats, cabin, landing, lava, spawn: new Vector3(0, 0, 0), spawnYaw: 0 };
 }

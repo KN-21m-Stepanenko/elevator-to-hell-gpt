@@ -12,14 +12,21 @@ interface BloodParticle {
 export class BloodBurst {
   private readonly particles: BloodParticle[] = [];
 
-  constructor(private readonly scene: Scene, origin: Vector3, hitFrom?: Vector3) {
+  constructor(private readonly scene: Scene, origin: Vector3, hitFrom?: Vector3, viewDirection?: Vector3) {
     // Кровь летит в сторону атакующего: от точки попадания к монстру.
     const towardAttacker = hitFrom
       ? hitFrom.subtract(origin)
       : new Vector3(Math.random() - 0.5, 0, Math.random() - 0.5);
-    const base = towardAttacker.lengthSquared() > 0.001
+    const attackerDir = towardAttacker.lengthSquared() > 0.001
       ? towardAttacker.normalize()
       : new Vector3(0, 0, 1);
+    const viewDir = viewDirection && viewDirection.lengthSquared() > 0.001
+      ? viewDirection.normalize()
+      : attackerDir;
+
+    // При атаке со спины кровь всё равно должна лететь в поле зрения игрока.
+    // Вектор взгляда имеет больший вес, направление к атакующему — меньший.
+    const base = viewDir.scale(1.8).add(attackerDir.scale(0.45)).normalize();
 
     // Строим два ортогональных направления, чтобы частицы разлетались конусом
     // к атакующему, а не строились почти в одну линию.

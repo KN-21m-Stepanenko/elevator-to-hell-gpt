@@ -86,14 +86,45 @@ export class CabinPanel {
    * Табло: слева текущий этаж и стрелка движения, справа вес.
    * Вес зелёный при ≤ лимита, красный при перегрузе; alarm — мигающая надпись после нажатия этажа.
    */
-  setBoard(weight: number, limit: number, alarm: boolean, flashOn: boolean, floorText: string, dir: number) {
-    const key = `${weight}|${alarm}|${alarm && flashOn}|${floorText}|${dir}`;
+  setBoard(weight: number, limit: number, alarm: boolean, flashOn: boolean, floorText: string, dir: number, emergency = false, glitchTick = 0) {
+    const key = `${weight}|${alarm}|${alarm && flashOn}|${floorText}|${dir}|${emergency}|${glitchTick}`;
     if (key === this.bKey) return;
     this.bKey = key;
     const c = this.bCtx, col = weight > limit ? "#ff3b2a" : "#3dff5e", fl = "#ffb830";
-    c.fillStyle = "#050805"; c.fillRect(0, 0, 256, 96);
+    c.fillStyle = emergency ? (flashOn ? "#240303" : "#050805") : "#050805";
+    c.fillRect(0, 0, 256, 96);
+
+    if (emergency) {
+      // Во время аварии табло превращается в быстро меняющийся мусорный код.
+      const glyphs = "#@$%&?!X7F/\\<>*+=";
+      const pseudo = (seed: number, len: number) => {
+        let x = (seed * 1103515245 + 12345) >>> 0;
+        let out = "";
+        for (let i = 0; i < len; i++) {
+          x = (x * 1664525 + 1013904223) >>> 0;
+          out += glyphs[x % glyphs.length];
+        }
+        return out;
+      };
+      c.strokeStyle = flashOn ? "#ff2b1f" : "#7a130d";
+      c.lineWidth = 4;
+      c.strokeRect(2, 2, 252, 92);
+      c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillStyle = "#ff3b2a";
+      c.font = 'bold 25px "Courier New", monospace';
+      c.fillText(pseudo(glitchTick + 11, 8), 58, 29);
+      c.fillText(pseudo(glitchTick + 97, 8), 58, 68);
+      c.font = 'bold 20px "Courier New", monospace';
+      c.fillStyle = "#ff8a72";
+      c.fillText(pseudo(glitchTick + 251, 12), 175, 28);
+      c.fillText(pseudo(glitchTick + 521, 10), 175, 61);
+      c.fillStyle = flashOn ? "#ffffff" : "#d33a30";
+      c.fillText("//", 128, 45);
+      this.bTex.update();
+      return;
+    }
+
     c.strokeStyle = col; c.lineWidth = 3; c.strokeRect(2, 2, 252, 92);
-    c.fillRect(0, 0, 0, 0);
     c.fillStyle = col; c.fillRect(92, 8, 2, 80); // разделитель
 
     // Этаж и стрелка
